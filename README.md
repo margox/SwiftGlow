@@ -40,7 +40,7 @@ Add this package in Xcode or `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/SwiftGlow.git", from: "0.1.0")
+    .package(url: "https://github.com/margox/SwiftGlow.git", from: "0.1.0")
 ]
 ```
 
@@ -148,6 +148,101 @@ Text("Default Rainbow")
     .foregroundStyle(.white)
     .animatedGlow(states: states, activeState: .default)
 ```
+
+## API Reference
+
+### View Modifier
+
+```swift
+func animatedGlow(
+    preset: GlowConfig = GlowConfig(),
+    states: [GlowState],
+    override: GlowConfig = GlowConfig(),
+    activeState: GlowEvent = .default,
+    isVisible: Bool = true
+) -> some View
+```
+
+Parameters:
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `preset` | `GlowConfig` | Base configuration applied after the `.default` state preset. Useful for shared defaults. |
+| `states` | `[GlowState]` | State list used to resolve `default`, `hover`, and `press` variants. In practice you usually want at least a `.default` state. |
+| `override` | `GlowConfig` | Per-view override applied after `preset` and before the active state. |
+| `activeState` | `GlowEvent` | The currently selected state. Supported values are `.default`, `.hover`, and `.press`. |
+| `isVisible` | `Bool` | Turns Metal rendering on or off for the glow view. |
+
+Config resolution order:
+
+1. `.default` state preset
+2. `preset`
+3. `override`
+4. active state's preset
+
+That merge order is implemented in `GlowCompatibility.resolvedConfig(...)`. Scalar fields are overridden when the later config provides a value. `glowLayers` are merged by array index instead of replacing the entire array.
+
+### GlowConfig
+
+`GlowConfig` describes the border, background, and glow layers for one resolved state.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `textColor` | `GlowColor?` | Compatibility and metadata field. Stored in the model, but not automatically applied to SwiftUI text by `.animatedGlow(...)`. Set your own `.foregroundStyle(...)` or `.foregroundColor(...)`. |
+| `cornerRadius` | `Float?` | Rounded rect corner radius in points. Defaults to `10` during rendering if omitted. |
+| `outlineWidth` | `Float?` | Animated border width in points. Defaults to `2` during rendering if omitted. |
+| `borderColor` | `[GlowColor]?` | Border gradient colors. Multiple colors animate around the perimeter. |
+| `backgroundColor` | `GlowColor?` | Fill color inside the rounded rect. Defaults to transparent. |
+| `animationSpeed` | `Float?` | Global animation speed factor. Defaults to `0.7` if omitted. |
+| `borderSpeedMultiplier` | `Float?` | Multiplier applied only to the border animation speed. Defaults to `1`. |
+| `glowLayers` | `[GlowLayerConfig]?` | Per-layer glow configuration. Up to 10 layers are rendered. |
+
+Notes:
+
+- `borderColor` currently produces an animated border when two or more colors are provided.
+- If `glowLayers` is omitted or empty, only the background and animated border are rendered.
+- `GlowConfig.css(...)` accepts CSS-style strings and converts them into `GlowColor` values for convenience.
+
+### GlowLayerConfig
+
+Each `GlowLayerConfig` defines one glow pass around the rounded rect.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `colors` | `[GlowColor]?` | Gradient colors sampled across the active coverage segment. Empty or omitted values resolve to transparent. |
+| `opacity` | `Float?` | Layer opacity multiplier. Defaults to `0.5`. |
+| `glowSize` | `[Float]?` | Glow radius profile around the animated segment. Supports 1 to 4 values. Omitted values resolve to zero glow. |
+| `speedMultiplier` | `Float?` | Per-layer multiplier on top of `animationSpeed`. Defaults to `1`. |
+| `glowPlacement` | `GlowPlacement?` | Placement relative to the content shape: `.behind`, `.inside`, or `.over`. Defaults to `.behind`. |
+| `coverage` | `Float?` | Fraction of the perimeter occupied by the animated segment. `1` means full perimeter, `0.5` means half, `0` disables the layer. Defaults to `1`. |
+| `relativeOffset` | `Float?` | Offset applied to the animated segment along the perimeter, expressed as a normalized fraction. Defaults to `0`. |
+
+`glowSize` expansion matches the React Native package:
+
+- `[a] -> [a, a, a, a]`
+- `[a, b] -> [a, b, b, a]`
+- `[a, b, c] -> [a, b, c, c]`
+- `[a, b, c, d] -> [a, b, c, d]`
+
+### GlowState and PresetConfig
+
+| Type | Fields | Description |
+| --- | --- | --- |
+| `GlowState` | `name`, `preset`, `transition` | One named state override. `name` is `.default`, `.hover`, or `.press`. |
+| `PresetConfig` | `states` | Container used by built-in presets such as `GlowPresets.appleIntelligence`. |
+
+`transition` is currently stored for compatibility with the React Native config model, but the SwiftUI wrapper does not yet animate interpolation between states. Changing `activeState` applies the resolved state immediately.
+
+### Supported Color Formats
+
+`GlowColor(css:)` and `GlowConfig.css(...)` currently accept:
+
+- `#fff`
+- `#ffffff`
+- `#ffffffff`
+- `rgb(255, 0, 0)`
+- `rgba(255, 0, 0, 0.5)`
+- `transparent`
 
 ## Available Types
 
