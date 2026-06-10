@@ -8,6 +8,8 @@ struct MetalGlowView {
     static let margin: CGFloat = 100
 
     var configuration: GlowConfig
+    var activeState: GlowEvent
+    var states: [GlowState]
     var isVisible: Bool
     var contentSize: CGSize
 }
@@ -76,7 +78,13 @@ private extension MetalGlowView {
     }
 
     func update(_ view: MTKView, renderer: GlowRenderer) {
-        renderer.update(configuration: configuration, isVisible: isVisible, contentSize: contentSize)
+        renderer.update(
+            configuration: configuration,
+            activeState: activeState,
+            states: states,
+            isVisible: isVisible,
+            contentSize: contentSize
+        )
         view.isPaused = !isVisible
     }
 }

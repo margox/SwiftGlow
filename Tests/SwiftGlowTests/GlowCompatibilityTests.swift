@@ -70,6 +70,34 @@ final class GlowCompatibilityTests: XCTestCase {
         XCTAssertEqual(resolved.animationSpeed, 4)
     }
 
+    func testInterpolatingAddedLayerFadesInFromZeroOpacityAndSize() {
+        let from = GlowConfig(glowLayers: [])
+        let to = GlowConfig(glowLayers: [
+            GlowLayerConfig(opacity: 0.8, glowSize: [10, 20])
+        ])
+
+        let midpoint = GlowCompatibility.interpolate(from, to, progress: 0.5)
+
+        XCTAssertEqual(midpoint.glowLayers?.count, 1)
+        XCTAssertEqual(midpoint.glowLayers?[0].opacity, 0.4)
+        XCTAssertEqual(midpoint.glowLayers?[0].glowSize, [5, 10])
+    }
+
+    func testInterpolatingRemovedLayerFadesOutToZeroOpacityAndSize() {
+        let from = GlowConfig(glowLayers: [
+            GlowLayerConfig(opacity: 0.8, glowSize: [10, 20])
+        ])
+        let to = GlowConfig(glowLayers: [])
+
+        let midpoint = GlowCompatibility.interpolate(from, to, progress: 0.5)
+        let final = GlowCompatibility.interpolate(from, to, progress: 1)
+
+        XCTAssertEqual(midpoint.glowLayers?.count, 1)
+        XCTAssertEqual(midpoint.glowLayers?[0].opacity, 0.4)
+        XCTAssertEqual(midpoint.glowLayers?[0].glowSize, [5, 10])
+        XCTAssertEqual(final.glowLayers, [])
+    }
+
     func testAutoStatusMapsPressGestureToPressState() {
         XCTAssertEqual(GlowStatus.auto.activeState(isPressed: false), .default)
         XCTAssertEqual(GlowStatus.auto.activeState(isPressed: true), .press)

@@ -64,11 +64,12 @@ public struct AnimatedGlow<Content: View>: View {
     }
 
     public var body: some View {
+        let activeState = status.activeState(isPressed: isPressed)
         let resolved = GlowCompatibility.resolvedConfig(
             preset: preset,
             states: states,
             viewOverride: viewOverride,
-            activeState: status.activeState(isPressed: isPressed)
+            activeState: activeState
         )
 
         let glowContent = content
@@ -76,6 +77,8 @@ public struct AnimatedGlow<Content: View>: View {
                 GeometryReader { proxy in
                     MetalGlowView(
                         configuration: resolved,
+                        activeState: activeState,
+                        states: states,
                         isVisible: isVisible,
                         contentSize: proxy.size
                     )

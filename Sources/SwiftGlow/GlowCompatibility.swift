@@ -78,6 +78,12 @@ public enum GlowCompatibility {
 
     public static func interpolate(_ from: GlowConfig, _ to: GlowConfig, progress: Float) -> GlowConfig {
         let p = max(0, min(1, progress))
+        if p <= 0 {
+            return from
+        }
+        if p >= 1 {
+            return to
+        }
         return GlowConfig(
             textColor: interpolate(from.textColor, to.textColor, progress: p),
             cornerRadius: interpolate(from.cornerRadius, to.cornerRadius, progress: p),
@@ -150,16 +156,23 @@ public enum GlowCompatibility {
     private static func interpolateLayers(_ from: [GlowLayerConfig], _ to: [GlowLayerConfig], progress: Float) -> [GlowLayerConfig] {
         let count = min(max(from.count, to.count), maximumLayerCount)
         return (0..<count).map { index in
-            let fromLayer = from.indices.contains(index) ? from[index] : GlowLayerConfig()
-            let toLayer = to.indices.contains(index) ? to[index] : GlowLayerConfig()
-            let targetOpacity: Float = toLayer.opacity ?? 0.5
-            let targetSpeedMultiplier: Float = toLayer.speedMultiplier ?? 1
-            let targetCoverage: Float = toLayer.coverage ?? 1
-            let targetRelativeOffset: Float = toLayer.relativeOffset ?? 0
+            let hasFromLayer = from.indices.contains(index)
+            let hasToLayer = to.indices.contains(index)
+            let fromLayer = hasFromLayer ? from[index] : GlowLayerConfig()
+            let toLayer = hasToLayer ? to[index] : GlowLayerConfig()
+            let targetOpacity: Float = toLayer.opacity ?? (hasToLayer ? 0.5 : 0)
+            let sourceOpacity: Float = fromLayer.opacity ?? (hasFromLayer ? targetOpacity : 0)
+            let targetSpeedMultiplier: Float = toLayer.speedMultiplier ?? fromLayer.speedMultiplier ?? 1
+            let targetCoverage: Float = toLayer.coverage ?? fromLayer.coverage ?? 1
+            let targetRelativeOffset: Float = toLayer.relativeOffset ?? fromLayer.relativeOffset ?? 0
             return GlowLayerConfig(
                 colors: interpolateColorArrays(fromLayer.colors, toLayer.colors, progress: progress),
-                opacity: interpolateRequired(fromLayer.opacity, targetOpacity, progress: progress),
-                glowSize: interpolateNumberArrays(fromLayer.glowSize, toLayer.glowSize, progress: progress),
+                opacity: interpolateRequired(sourceOpacity, targetOpacity, progress: progress),
+                glowSize: interpolateNumberArrays(
+                    hasFromLayer ? fromLayer.glowSize : zeroArray(matching: toLayer.glowSize),
+                    hasToLayer ? toLayer.glowSize : zeroArray(matching: fromLayer.glowSize),
+                    progress: progress
+                ),
                 speedMultiplier: interpolateRequired(fromLayer.speedMultiplier, targetSpeedMultiplier, progress: progress),
                 glowPlacement: toLayer.glowPlacement ?? fromLayer.glowPlacement ?? .behind,
                 coverage: interpolateRequired(fromLayer.coverage, targetCoverage, progress: progress),
@@ -218,5 +231,13 @@ public enum GlowCompatibility {
     private static func interpolateRequired(_ from: Float?, _ to: Float, progress: Float) -> Float {
         let fromValue = from ?? to
         return fromValue + (to - fromValue) * progress
+    }
+
+    private static func interpolateRequired(_ from: Float, _ to: Float, progress: Float) -> Float {
+        from + (to - from) * progress
+    }
+
+    private static func zeroArray(matching values: [Float]?) -> [Float]? {
+        values.map { Array(repeating: 0, count: max(1, $0.count)) }
     }
 }

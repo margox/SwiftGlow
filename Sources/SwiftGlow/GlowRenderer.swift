@@ -12,6 +12,13 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
     private var borderProgress: Float = 0
     private var layerProgress = Array(repeating: Float(0), count: GlowCompatibility.maximumLayerCount)
     private var configuration = GlowConfig()
+    private var targetConfiguration = GlowConfig()
+    private var transitionStartConfiguration = GlowConfig()
+    private var transitionTargetConfiguration = GlowConfig()
+    private var transitionStartTime: CFTimeInterval = 0
+    private var transitionDuration: TimeInterval = 0
+    private var activeState = GlowEvent.default
+    private var hasReceivedConfiguration = false
     private var isVisible = true
     private var contentSize: CGSize = .zero
 
@@ -25,8 +32,14 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
         pipelineState = makePipelineState(device: device, pixelFormat: view.colorPixelFormat)
     }
 
-    func update(configuration: GlowConfig, isVisible: Bool, contentSize: CGSize) {
-        self.configuration = configuration
+    func update(
+        configuration: GlowConfig,
+        activeState: GlowEvent,
+        states: [GlowState],
+        isVisible: Bool,
+        contentSize: CGSize
+    ) {
+        updateConfiguration(configuration, activeState: activeState, states: states)
         self.isVisible = isVisible
         self.contentSize = contentSize
     }
@@ -45,6 +58,7 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
         }
 
         let now = CACurrentMediaTime()
+        configuration = displayedConfiguration(at: now)
         let deltaTime = Float(now - lastTime)
         lastTime = now
         advance(deltaTime: deltaTime)
@@ -65,6 +79,59 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
         encoder.endEncoding()
         commandBuffer.present(drawable)
         commandBuffer.commit()
+    }
+
+    private func updateConfiguration(_ newConfiguration: GlowConfig, activeState newActiveState: GlowEvent, states: [GlowState]) {
+        guard hasReceivedConfiguration else {
+            configuration = newConfiguration
+            targetConfiguration = newConfiguration
+            transitionStartConfiguration = newConfiguration
+            transitionTargetConfiguration = newConfiguration
+            activeState = newActiveState
+            hasReceivedConfiguration = true
+            return
+        }
+
+        guard newConfiguration != targetConfiguration || newActiveState != activeState else {
+            return
+        }
+
+        let now = CACurrentMediaTime()
+        let currentConfiguration = displayedConfiguration(at: now)
+        let duration = GlowCompatibility.transitionDuration(
+            states: states,
+            activeState: newActiveState,
+            previousState: activeState
+        )
+
+        targetConfiguration = newConfiguration
+        transitionStartConfiguration = currentConfiguration
+        transitionTargetConfiguration = newConfiguration
+        transitionStartTime = now
+        transitionDuration = duration
+        activeState = newActiveState
+        configuration = duration > 0 ? currentConfiguration : newConfiguration
+    }
+
+    private func displayedConfiguration(at time: CFTimeInterval) -> GlowConfig {
+        guard transitionDuration > 0 else {
+            return targetConfiguration
+        }
+
+        let rawProgress = Float(max(0, min(1, (time - transitionStartTime) / transitionDuration)))
+        guard rawProgress < 1 else {
+            return transitionTargetConfiguration
+        }
+
+        return GlowCompatibility.interpolate(
+            transitionStartConfiguration,
+            transitionTargetConfiguration,
+            progress: easedProgress(rawProgress)
+        )
+    }
+
+    private func easedProgress(_ progress: Float) -> Float {
+        progress * progress * (3 - 2 * progress)
     }
 
     private func advance(deltaTime: Float) {
