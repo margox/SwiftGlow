@@ -3,12 +3,13 @@ import SwiftUI
 public struct AnimatedGlow<Content: View>: View {
     private let preset: GlowConfig
     private let states: [GlowState]
-    private let override: GlowConfig
+    private let viewOverride: GlowConfig
     private let status: GlowStatus
     private let isVisible: Bool
     private let content: Content
     @GestureState private var isPressed = false
 
+    @available(*, deprecated, message: "Use init(preset:states:viewOverride:status:isVisible:content:) with GlowStatus.default, .hover, .press, or .auto.")
     public init(
         preset: GlowConfig = GlowConfig(),
         states: [GlowState],
@@ -20,7 +21,7 @@ public struct AnimatedGlow<Content: View>: View {
         self.init(
             preset: preset,
             states: states,
-            override: override,
+            viewOverride: override,
             status: .manual(activeState),
             isVisible: isVisible,
             content: content
@@ -30,24 +31,43 @@ public struct AnimatedGlow<Content: View>: View {
     public init(
         preset: GlowConfig = GlowConfig(),
         states: [GlowState],
-        override: GlowConfig = GlowConfig(),
+        viewOverride: GlowConfig = GlowConfig(),
         status: GlowStatus,
         isVisible: Bool = true,
         @ViewBuilder content: () -> Content
     ) {
         self.preset = preset
         self.states = states
-        self.override = override
+        self.viewOverride = viewOverride
         self.status = status
         self.isVisible = isVisible
         self.content = content()
+    }
+
+    @available(*, deprecated, renamed: "init(preset:states:viewOverride:status:isVisible:content:)")
+    public init(
+        preset: GlowConfig = GlowConfig(),
+        states: [GlowState],
+        override: GlowConfig,
+        status: GlowStatus,
+        isVisible: Bool = true,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.init(
+            preset: preset,
+            states: states,
+            viewOverride: override,
+            status: status,
+            isVisible: isVisible,
+            content: content
+        )
     }
 
     public var body: some View {
         let resolved = GlowCompatibility.resolvedConfig(
             preset: preset,
             states: states,
-            override: override,
+            viewOverride: viewOverride,
             activeState: status.activeState(isPressed: isPressed)
         )
 
@@ -84,6 +104,7 @@ public struct AnimatedGlow<Content: View>: View {
 }
 
 public extension View {
+    @available(*, deprecated, message: "Use animatedGlow(preset:states:viewOverride:status:isVisible:) with GlowStatus.default, .hover, .press, or .auto.")
     func animatedGlow(
         preset: GlowConfig = GlowConfig(),
         states: [GlowState],
@@ -105,18 +126,35 @@ public extension View {
     func animatedGlow(
         preset: GlowConfig = GlowConfig(),
         states: [GlowState],
-        override: GlowConfig = GlowConfig(),
+        viewOverride: GlowConfig = GlowConfig(),
         status: GlowStatus,
         isVisible: Bool = true
     ) -> some View {
         AnimatedGlow(
             preset: preset,
             states: states,
-            override: override,
+            viewOverride: viewOverride,
             status: status,
             isVisible: isVisible
         ) {
             self
         }
+    }
+
+    @available(*, deprecated, renamed: "animatedGlow(preset:states:viewOverride:status:isVisible:)")
+    func animatedGlow(
+        preset: GlowConfig = GlowConfig(),
+        states: [GlowState],
+        override: GlowConfig,
+        status: GlowStatus,
+        isVisible: Bool = true
+    ) -> some View {
+        animatedGlow(
+            preset: preset,
+            states: states,
+            viewOverride: override,
+            status: status,
+            isVisible: isVisible
+        )
     }
 }

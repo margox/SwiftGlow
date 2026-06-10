@@ -67,7 +67,7 @@ struct DemoView: View {
             .padding(.vertical, 22)
             .animatedGlow(
                 states: GlowPresets.appleIntelligence.states,
-                activeState: .default
+                status: .default
             )
             .padding(40)
             .background(.black)
@@ -146,7 +146,7 @@ Text("Default Rainbow")
     .padding(.horizontal, 36)
     .padding(.vertical, 18)
     .foregroundStyle(.white)
-    .animatedGlow(states: states, activeState: .default)
+    .animatedGlow(states: states, status: .default)
 ```
 
 ## API 参考
@@ -157,15 +157,7 @@ Text("Default Rainbow")
 func animatedGlow(
     preset: GlowConfig = GlowConfig(),
     states: [GlowState],
-    override: GlowConfig = GlowConfig(),
-    activeState: GlowEvent = .default,
-    isVisible: Bool = true
-) -> some View
-
-func animatedGlow(
-    preset: GlowConfig = GlowConfig(),
-    states: [GlowState],
-    override: GlowConfig = GlowConfig(),
+    viewOverride: GlowConfig = GlowConfig(),
     status: GlowStatus,
     isVisible: Bool = true
 ) -> some View
@@ -176,10 +168,9 @@ func animatedGlow(
 | 参数 | 类型 | 说明 |
 | --- | --- | --- |
 | `preset` | `GlowConfig` | 在 `.default` 状态之后应用的基础配置，适合放共享默认值。 |
-| `states` | `[GlowState]` | 状态数组，用于解析 `default`、`hover`、`press`。实际使用时通常至少应提供一个 `.default` 状态。 |
-| `override` | `GlowConfig` | 单个视图级别的覆盖配置，应用顺序在 `preset` 之后、激活状态之前。 |
-| `activeState` | `GlowEvent` | 当前激活的状态，可选 `.default`、`.hover`、`.press`。 |
-| `status` | `GlowStatus` | 交互视图的状态驱动。用 `.auto` 可以自动在 `.default` 和 `.press` 之间切换；用 `.manual(...)` 可以显式控制状态。 |
+| `states` | `[GlowState]` | 状态变体集合。实际使用时通常至少应提供一个 `.default` 状态，必要时再补 `.hover` / `.press`。 |
+| `viewOverride` | `GlowConfig` | 单个视图级别的覆盖配置，应用顺序在 `preset` 之后、选中状态之前。 |
+| `status` | `GlowStatus` | 状态选择。可直接用 `.default`、`.hover`、`.press` 显式指定，也可以用 `.auto` 在 `.default` 和 `.press` 之间自动切换。 |
 | `isVisible` | `Bool` | 控制 glow 的 Metal 渲染是否启用。 |
 
 按钮这类可交互控件可以这样写：
@@ -197,12 +188,14 @@ Button("Buy") {
 
 `status: .auto` 会在空闲时解析为 `.default`，按下时解析为 `.press`。它不会自动使用 `.hover`。
 
+为了兼容旧用法，`activeState:` 这一套入口还保留着，但公开 API 现在优先推荐 `status:`。
+
 配置合并顺序：
 
 1. `.default` 状态的 `preset`
 2. `preset`
-3. `override`
-4. 当前 `activeState` 对应状态的 `preset`
+3. `viewOverride`
+4. 当前选中状态对应的 `preset`
 
 这个顺序由 `GlowCompatibility.resolvedConfig(...)` 实现。标量字段在后者有值时覆盖前者，`glowLayers` 则按数组下标逐层合并，而不是整体替换。
 
@@ -253,7 +246,7 @@ Button("Buy") {
 | 类型 | 字段 | 说明 |
 | --- | --- | --- |
 | `GlowState` | `name`、`preset`、`transition` | 一个具名状态覆盖。`name` 可取 `.default`、`.hover`、`.press`。 |
-| `GlowStatus` | `.auto`、`.manual(GlowEvent)` | 控制 modifier 是根据按压交互自动解析状态，还是使用显式事件。 |
+| `GlowStatus` | `.default`、`.hover`、`.press`、`.auto`、`.manual(GlowEvent)` | 控制当前解析哪个状态变体。 |
 | `PresetConfig` | `states` | 预设容器，内建预设例如 `GlowPresets.appleIntelligence` 就是这个结构。 |
 
 `transition` 目前主要用于兼容 React Native 配置模型。SwiftUI 包装层暂时还没有把状态切换做成插值动画，所以修改 `activeState` 时会立即切换到解析后的目标状态。

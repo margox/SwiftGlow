@@ -61,7 +61,7 @@ final class GlowCompatibilityTests: XCTestCase {
         let resolved = GlowCompatibility.resolvedConfig(
             preset: GlowConfig(cornerRadius: 20),
             states: states,
-            override: GlowConfig(outlineWidth: 3),
+            viewOverride: GlowConfig(outlineWidth: 3),
             activeState: .press
         )
 
@@ -73,6 +73,9 @@ final class GlowCompatibilityTests: XCTestCase {
     func testAutoStatusMapsPressGestureToPressState() {
         XCTAssertEqual(GlowStatus.auto.activeState(isPressed: false), .default)
         XCTAssertEqual(GlowStatus.auto.activeState(isPressed: true), .press)
+        XCTAssertEqual(GlowStatus.default.activeState(isPressed: true), .default)
+        XCTAssertEqual(GlowStatus.hover.activeState(isPressed: true), .hover)
+        XCTAssertEqual(GlowStatus.press.activeState(isPressed: false), .press)
         XCTAssertEqual(GlowStatus.manual(.hover).activeState(isPressed: true), .hover)
     }
 }

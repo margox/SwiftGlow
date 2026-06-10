@@ -560,14 +560,13 @@ struct PreviewStage: View {
                 .opacity(0.08)
 
             VStack(spacing: 28) {
-                Text(model.buttonTitle)
-                    .font(.system(size: 22, weight: .bold))
+                previewTitle
                     .foregroundStyle(model.previewTextColor)
                     .padding(.horizontal, 52)
                     .padding(.vertical, 22)
                     .animatedGlow(
                         states: model.states,
-                        activeState: model.activeState
+                        status: .manual(model.activeState)
                     )
 
                 HStack(spacing: 12) {
@@ -577,6 +576,11 @@ struct PreviewStage: View {
                 }
             }
         }
+    }
+
+    private var previewTitle: Text {
+        Text(model.buttonTitle)
+            .font(.system(size: 22, weight: .bold))
     }
 
     private var checkerboard: some View {

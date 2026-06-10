@@ -23,14 +23,29 @@ public enum GlowCompatibility {
     public static func resolvedConfig(
         preset: GlowConfig = GlowConfig(),
         states: [GlowState],
-        override: GlowConfig = GlowConfig(),
+        viewOverride: GlowConfig = GlowConfig(),
         activeState: GlowEvent
     ) -> GlowConfig {
         let defaultState = states.first { $0.name == .default }?.preset ?? GlowConfig()
         let baseConfig = merge(defaultState, with: preset)
-        let overriddenBase = merge(baseConfig, with: override)
+        let overriddenBase = merge(baseConfig, with: viewOverride)
         let stateOverride = states.first { $0.name == activeState }?.preset ?? GlowConfig()
         return merge(overriddenBase, with: stateOverride)
+    }
+
+    @available(*, deprecated, renamed: "resolvedConfig(preset:states:viewOverride:activeState:)")
+    public static func resolvedConfig(
+        preset: GlowConfig = GlowConfig(),
+        states: [GlowState],
+        override: GlowConfig = GlowConfig(),
+        activeState: GlowEvent
+    ) -> GlowConfig {
+        resolvedConfig(
+            preset: preset,
+            states: states,
+            viewOverride: override,
+            activeState: activeState
+        )
     }
 
     public static func transitionDuration(

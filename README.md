@@ -67,7 +67,7 @@ struct DemoView: View {
             .padding(.vertical, 22)
             .animatedGlow(
                 states: GlowPresets.appleIntelligence.states,
-                activeState: .default
+                status: .default
             )
             .padding(40)
             .background(.black)
@@ -146,7 +146,7 @@ Text("Default Rainbow")
     .padding(.horizontal, 36)
     .padding(.vertical, 18)
     .foregroundStyle(.white)
-    .animatedGlow(states: states, activeState: .default)
+    .animatedGlow(states: states, status: .default)
 ```
 
 ## API Reference
@@ -157,15 +157,7 @@ Text("Default Rainbow")
 func animatedGlow(
     preset: GlowConfig = GlowConfig(),
     states: [GlowState],
-    override: GlowConfig = GlowConfig(),
-    activeState: GlowEvent = .default,
-    isVisible: Bool = true
-) -> some View
-
-func animatedGlow(
-    preset: GlowConfig = GlowConfig(),
-    states: [GlowState],
-    override: GlowConfig = GlowConfig(),
+    viewOverride: GlowConfig = GlowConfig(),
     status: GlowStatus,
     isVisible: Bool = true
 ) -> some View
@@ -176,10 +168,9 @@ Parameters:
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `preset` | `GlowConfig` | Base configuration applied after the `.default` state preset. Useful for shared defaults. |
-| `states` | `[GlowState]` | State list used to resolve `default`, `hover`, and `press` variants. In practice you usually want at least a `.default` state. |
-| `override` | `GlowConfig` | Per-view override applied after `preset` and before the active state. |
-| `activeState` | `GlowEvent` | The currently selected state. Supported values are `.default`, `.hover`, and `.press`. |
-| `status` | `GlowStatus` | State driver for interactive views. Use `.auto` to switch between `.default` and `.press` automatically, or `.manual(...)` for explicit control. |
+| `states` | `[GlowState]` | State variants. In practice you usually want at least a `.default` state, and optionally `.hover` / `.press`. |
+| `viewOverride` | `GlowConfig` | Per-view override applied after `preset` and before the selected state. |
+| `status` | `GlowStatus` | State selection. Use `.default`, `.hover`, or `.press` for explicit selection, or `.auto` to switch between `.default` and `.press` automatically. |
 | `isVisible` | `Bool` | Turns Metal rendering on or off for the glow view. |
 
 For interactive controls such as buttons:
@@ -197,12 +188,14 @@ Button("Buy") {
 
 `status: .auto` uses a press gesture to resolve `.default` while idle and `.press` while pressed. It does not use `.hover`.
 
+There is still a deprecated `activeState:` overload for compatibility, but `status:` is the preferred public API now.
+
 Config resolution order:
 
 1. `.default` state preset
 2. `preset`
-3. `override`
-4. active state's preset
+3. `viewOverride`
+4. selected state's preset
 
 That merge order is implemented in `GlowCompatibility.resolvedConfig(...)`. Scalar fields are overridden when the later config provides a value. `glowLayers` are merged by array index instead of replacing the entire array.
 
@@ -253,7 +246,7 @@ Each `GlowLayerConfig` defines one glow pass around the rounded rect.
 | Type | Fields | Description |
 | --- | --- | --- |
 | `GlowState` | `name`, `preset`, `transition` | One named state override. `name` is `.default`, `.hover`, or `.press`. |
-| `GlowStatus` | `.auto`, `.manual(GlowEvent)` | Controls whether the modifier resolves state automatically from press interaction or from an explicit event. |
+| `GlowStatus` | `.default`, `.hover`, `.press`, `.auto`, `.manual(GlowEvent)` | Controls which state variant is resolved. |
 | `PresetConfig` | `states` | Container used by built-in presets such as `GlowPresets.appleIntelligence`. |
 
 `transition` is currently stored for compatibility with the React Native config model, but the SwiftUI wrapper does not yet animate interpolation between states. Changing `activeState` applies the resolved state immediately.
