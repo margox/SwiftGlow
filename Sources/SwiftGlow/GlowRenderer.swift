@@ -150,20 +150,7 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
     }
 
     private func makePipelineState(device: MTLDevice, pixelFormat: MTLPixelFormat) -> MTLRenderPipelineState? {
-        guard let shaderURL = Bundle.module.url(forResource: "GlowShaders", withExtension: "metal") else {
-            print("SwiftGlow: GlowShaders.metal resource was not found.")
-            return nil
-        }
-        guard let shaderSource = try? String(contentsOf: shaderURL) else {
-            print("SwiftGlow: failed to read GlowShaders.metal.")
-            return nil
-        }
-
-        let library: MTLLibrary
-        do {
-            library = try device.makeLibrary(source: shaderSource, options: nil)
-        } catch {
-            print("SwiftGlow: failed to compile Metal shader: \(error)")
+        guard let library = makeShaderLibrary(device: device) else {
             return nil
         }
 
@@ -188,6 +175,28 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
             return try device.makeRenderPipelineState(descriptor: descriptor)
         } catch {
             print("SwiftGlow: failed to create pipeline state: \(error)")
+            return nil
+        }
+    }
+
+    private func makeShaderLibrary(device: MTLDevice) -> MTLLibrary? {
+        if let library = try? device.makeDefaultLibrary(bundle: .module) {
+            return library
+        }
+
+        guard let shaderURL = Bundle.module.url(forResource: "GlowShaders", withExtension: "metal") else {
+            print("SwiftGlow: GlowShaders.metal resource was not found.")
+            return nil
+        }
+        guard let shaderSource = try? String(contentsOf: shaderURL) else {
+            print("SwiftGlow: failed to read GlowShaders.metal.")
+            return nil
+        }
+
+        do {
+            return try device.makeLibrary(source: shaderSource, options: nil)
+        } catch {
+            print("SwiftGlow: failed to compile Metal shader: \(error)")
             return nil
         }
     }

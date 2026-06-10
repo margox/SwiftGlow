@@ -1,5 +1,8 @@
 import MetalKit
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct MetalGlowView {
     static let margin: CGFloat = 100
@@ -16,11 +19,11 @@ extension MetalGlowView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> MTKView {
-        makeView(context: context)
+        makeView(renderer: context.coordinator)
     }
 
     func updateUIView(_ view: MTKView, context: Context) {
-        update(view, coordinator: context.coordinator)
+        update(view, renderer: context.coordinator)
     }
 }
 #elseif canImport(AppKit)
@@ -40,17 +43,17 @@ extension MetalGlowView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> MTKView {
-        makeView(context: context)
+        makeView(renderer: context.coordinator)
     }
 
     func updateNSView(_ view: MTKView, context: Context) {
-        update(view, coordinator: context.coordinator)
+        update(view, renderer: context.coordinator)
     }
 }
 #endif
 
 private extension MetalGlowView {
-    func makeView(context: Any) -> MTKView {
+    func makeView(renderer: GlowRenderer) -> MTKView {
         #if canImport(AppKit)
         let view = GlowMTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
         #else
@@ -63,29 +66,17 @@ private extension MetalGlowView {
         view.colorPixelFormat = .bgra8Unorm
         #if canImport(UIKit)
         view.isOpaque = false
+        view.backgroundColor = .clear
         #elseif canImport(AppKit)
         view.layer?.isOpaque = false
         #endif
-        view.delegate = renderer(from: context)
-        renderer(from: context).attach(to: view)
+        view.delegate = renderer
+        renderer.attach(to: view)
         return view
     }
 
-    func update(_ view: MTKView, coordinator: GlowRenderer) {
-        coordinator.update(configuration: configuration, isVisible: isVisible, contentSize: contentSize)
+    func update(_ view: MTKView, renderer: GlowRenderer) {
+        renderer.update(configuration: configuration, isVisible: isVisible, contentSize: contentSize)
         view.isPaused = !isVisible
-    }
-
-    func renderer(from context: Any) -> GlowRenderer {
-        #if canImport(UIKit)
-        if let context = context as? UIViewRepresentableContext<MetalGlowView> {
-            return context.coordinator
-        }
-        #elseif canImport(AppKit)
-        if let context = context as? NSViewRepresentableContext<MetalGlowView> {
-            return context.coordinator
-        }
-        #endif
-        return GlowRenderer()
     }
 }
