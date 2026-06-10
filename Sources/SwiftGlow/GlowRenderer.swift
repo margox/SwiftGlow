@@ -49,7 +49,10 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
         lastTime = now
         advance(deltaTime: deltaTime)
 
-        var uniforms = makeUniforms(viewSize: view.drawableSize)
+        var uniforms = makeUniforms(
+            drawableSize: view.drawableSize,
+            boundsSize: view.bounds.size
+        )
         guard let commandBuffer = commandQueue.makeCommandBuffer(),
               let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor) else {
             return
@@ -76,19 +79,30 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
         }
     }
 
-    private func makeUniforms(viewSize: CGSize) -> GlowUniforms {
+    private func makeUniforms(drawableSize: CGSize, boundsSize: CGSize) -> GlowUniforms {
         var uniforms = GlowUniforms()
-        uniforms.resolution = SIMD2(Float(viewSize.width), Float(viewSize.height))
-        uniforms.rectSize = SIMD2(Float(contentSize.width), Float(contentSize.height))
-        uniforms.cornerRadius = min(configuration.cornerRadius ?? 10, Float(contentSize.width / 2), Float(contentSize.height / 2))
-        uniforms.borderWidth = configuration.outlineWidth ?? 2
+        let scaleX = boundsSize.width > 0 ? Float(drawableSize.width / boundsSize.width) : 1
+        let scaleY = boundsSize.height > 0 ? Float(drawableSize.height / boundsSize.height) : 1
+        let uniformScale = min(scaleX, scaleY)
+
+        uniforms.resolution = SIMD2(Float(drawableSize.width), Float(drawableSize.height))
+        uniforms.rectSize = SIMD2(
+            Float(contentSize.width) * scaleX,
+            Float(contentSize.height) * scaleY
+        )
+        uniforms.cornerRadius = min(
+            (configuration.cornerRadius ?? 10) * uniformScale,
+            Float(contentSize.width / 2) * scaleX,
+            Float(contentSize.height / 2) * scaleY
+        )
+        uniforms.borderWidth = (configuration.outlineWidth ?? 2) * uniformScale
         uniforms.borderProgress = borderProgress
         uniforms.masterOpacity = isVisible ? 1 : 0
         uniforms.backgroundColor = (configuration.backgroundColor ?? GlowColor.clear).simd
         uniforms.isBorderAnimated = (configuration.borderColor?.count ?? 0) > 1 ? 1 : 0
 
         fillBorderColors(&uniforms)
-        fillLayers(&uniforms)
+        fillLayers(&uniforms, scale: uniformScale)
         return uniforms
     }
 
@@ -99,7 +113,7 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
         }
     }
 
-    private func fillLayers(_ uniforms: inout GlowUniforms) {
+    private func fillLayers(_ uniforms: inout GlowUniforms, scale: Float) {
         let layers = Array((configuration.glowLayers ?? []).prefix(GlowCompatibility.maximumLayerCount))
         uniforms.layerCount = UInt32(layers.count)
 
@@ -115,7 +129,7 @@ final class GlowRenderer: NSObject, MTKViewDelegate {
             layerUniform.relativeOffset = layer.relativeOffset ?? 0
             layerUniform.placement = (layer.glowPlacement ?? GlowPlacement.behind).shaderValue
             layerUniform.progress = layerProgress[index]
-            layerUniform.glowSize = GlowCompatibility.glowSizeVector(layer.glowSize)
+            layerUniform.glowSize = GlowCompatibility.glowSizeVector(layer.glowSize) * scale
             setLayer(layerUniform, at: index, in: &uniforms)
 
             let colors = GlowCompatibility.sampleSeamlessColors(layer.colors ?? [])
