@@ -1,9 +1,16 @@
 import Foundation
 import SwiftGlow
 import SwiftUI
+#if canImport(AppKit)
+import AppKit
+#endif
 
 @main
 struct SwiftGlowDemoApp: App {
+    #if canImport(AppKit)
+    @NSApplicationDelegateAdaptor(DemoAppDelegate.self) private var appDelegate
+    #endif
+
     var body: some Scene {
         WindowGroup {
             DemoRootView()
@@ -11,6 +18,19 @@ struct SwiftGlowDemoApp: App {
         }
     }
 }
+
+#if canImport(AppKit)
+final class DemoAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+
+        DispatchQueue.main.async {
+            NSApp.windows.first?.makeKeyAndOrderFront(nil)
+        }
+    }
+}
+#endif
 
 struct DemoRootView: View {
     @StateObject private var model = DemoModel()
