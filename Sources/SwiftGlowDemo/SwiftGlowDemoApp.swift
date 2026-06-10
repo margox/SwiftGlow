@@ -9,7 +9,6 @@ struct SwiftGlowDemoApp: App {
             DemoRootView()
                 .frame(minWidth: 1120, minHeight: 720)
         }
-        .windowStyle(.hiddenTitleBar)
     }
 }
 

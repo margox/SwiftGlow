@@ -24,6 +24,16 @@ extension MetalGlowView: UIViewRepresentable {
     }
 }
 #elseif canImport(AppKit)
+final class GlowMTKView: MTKView {
+    override var acceptsFirstResponder: Bool {
+        false
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        nil
+    }
+}
+
 extension MetalGlowView: NSViewRepresentable {
     func makeCoordinator() -> GlowRenderer {
         GlowRenderer()
@@ -41,7 +51,11 @@ extension MetalGlowView: NSViewRepresentable {
 
 private extension MetalGlowView {
     func makeView(context: Any) -> MTKView {
+        #if canImport(AppKit)
+        let view = GlowMTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+        #else
         let view = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+        #endif
         view.framebufferOnly = true
         view.isPaused = false
         view.enableSetNeedsDisplay = false
