@@ -51,4 +51,10 @@ final class GlowCompatibilityTests: XCTestCase {
         XCTAssertEqual(resolved.outlineWidth, 3)
         XCTAssertEqual(resolved.animationSpeed, 4)
     }
+
+    func testAutoStatusMapsPressGestureToPressState() {
+        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: false), .default)
+        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: true), .press)
+        XCTAssertEqual(GlowStatus.manual(.hover).activeState(isPressed: true), .hover)
+    }
 }

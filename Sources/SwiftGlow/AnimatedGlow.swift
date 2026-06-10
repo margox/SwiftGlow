@@ -4,9 +4,10 @@ public struct AnimatedGlow<Content: View>: View {
     private let preset: GlowConfig
     private let states: [GlowState]
     private let override: GlowConfig
-    private let activeState: GlowEvent
+    private let status: GlowStatus
     private let isVisible: Bool
     private let content: Content
+    @GestureState private var isPressed = false
 
     public init(
         preset: GlowConfig = GlowConfig(),
@@ -16,10 +17,28 @@ public struct AnimatedGlow<Content: View>: View {
         isVisible: Bool = true,
         @ViewBuilder content: () -> Content
     ) {
+        self.init(
+            preset: preset,
+            states: states,
+            override: override,
+            status: .manual(activeState),
+            isVisible: isVisible,
+            content: content
+        )
+    }
+
+    public init(
+        preset: GlowConfig = GlowConfig(),
+        states: [GlowState],
+        override: GlowConfig = GlowConfig(),
+        status: GlowStatus,
+        isVisible: Bool = true,
+        @ViewBuilder content: () -> Content
+    ) {
         self.preset = preset
         self.states = states
         self.override = override
-        self.activeState = activeState
+        self.status = status
         self.isVisible = isVisible
         self.content = content()
     }
@@ -29,10 +48,10 @@ public struct AnimatedGlow<Content: View>: View {
             preset: preset,
             states: states,
             override: override,
-            activeState: activeState
+            activeState: status.activeState(isPressed: isPressed)
         )
 
-        content
+        let glowContent = content
             .background {
                 GeometryReader { proxy in
                     MetalGlowView(
@@ -47,6 +66,19 @@ public struct AnimatedGlow<Content: View>: View {
                     )
                     .offset(x: -MetalGlowView.margin, y: -MetalGlowView.margin)
                 }
+            }
+
+        if status == .auto {
+            glowContent.simultaneousGesture(pressGesture)
+        } else {
+            glowContent
+        }
+    }
+
+    private var pressGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .updating($isPressed) { _, isPressed, _ in
+                isPressed = true
             }
     }
 }
@@ -64,6 +96,24 @@ public extension View {
             states: states,
             override: override,
             activeState: activeState,
+            isVisible: isVisible
+        ) {
+            self
+        }
+    }
+
+    func animatedGlow(
+        preset: GlowConfig = GlowConfig(),
+        states: [GlowState],
+        override: GlowConfig = GlowConfig(),
+        status: GlowStatus,
+        isVisible: Bool = true
+    ) -> some View {
+        AnimatedGlow(
+            preset: preset,
+            states: states,
+            override: override,
+            status: status,
             isVisible: isVisible
         ) {
             self

@@ -161,6 +161,14 @@ func animatedGlow(
     activeState: GlowEvent = .default,
     isVisible: Bool = true
 ) -> some View
+
+func animatedGlow(
+    preset: GlowConfig = GlowConfig(),
+    states: [GlowState],
+    override: GlowConfig = GlowConfig(),
+    status: GlowStatus,
+    isVisible: Bool = true
+) -> some View
 ```
 
 Parameters:
@@ -171,7 +179,23 @@ Parameters:
 | `states` | `[GlowState]` | State list used to resolve `default`, `hover`, and `press` variants. In practice you usually want at least a `.default` state. |
 | `override` | `GlowConfig` | Per-view override applied after `preset` and before the active state. |
 | `activeState` | `GlowEvent` | The currently selected state. Supported values are `.default`, `.hover`, and `.press`. |
+| `status` | `GlowStatus` | State driver for interactive views. Use `.auto` to switch between `.default` and `.press` automatically, or `.manual(...)` for explicit control. |
 | `isVisible` | `Bool` | Turns Metal rendering on or off for the glow view. |
+
+For interactive controls such as buttons:
+
+```swift
+Button("Buy") {
+    purchase()
+}
+.buttonStyle(.plain)
+.animatedGlow(
+    states: GlowPresets.neonGreen.states,
+    status: .auto
+)
+```
+
+`status: .auto` uses a press gesture to resolve `.default` while idle and `.press` while pressed. It does not use `.hover`.
 
 Config resolution order:
 
@@ -229,6 +253,7 @@ Each `GlowLayerConfig` defines one glow pass around the rounded rect.
 | Type | Fields | Description |
 | --- | --- | --- |
 | `GlowState` | `name`, `preset`, `transition` | One named state override. `name` is `.default`, `.hover`, or `.press`. |
+| `GlowStatus` | `.auto`, `.manual(GlowEvent)` | Controls whether the modifier resolves state automatically from press interaction or from an explicit event. |
 | `PresetConfig` | `states` | Container used by built-in presets such as `GlowPresets.appleIntelligence`. |
 
 `transition` is currently stored for compatibility with the React Native config model, but the SwiftUI wrapper does not yet animate interpolation between states. Changing `activeState` applies the resolved state immediately.
@@ -251,6 +276,7 @@ Core public types:
 - `GlowColor`
 - `GlowPlacement`
 - `GlowEvent`
+- `GlowStatus`
 - `GlowLayerConfig`
 - `GlowConfig`
 - `GlowState`

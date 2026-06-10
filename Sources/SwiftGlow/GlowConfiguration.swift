@@ -23,6 +23,20 @@ public enum GlowEvent: String, Codable, Sendable {
     case press
 }
 
+public enum GlowStatus: Equatable, Sendable {
+    case auto
+    case manual(GlowEvent)
+
+    func activeState(isPressed: Bool) -> GlowEvent {
+        switch self {
+        case .auto:
+            return isPressed ? .press : .default
+        case let .manual(event):
+            return event
+        }
+    }
+}
+
 public struct GlowLayerConfig: Equatable, Sendable {
     public var colors: [GlowColor]?
     public var opacity: Float?
