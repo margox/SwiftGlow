@@ -39,6 +39,9 @@ enum GlowColorParser {
         if raw.lowercased() == "transparent" {
             return .clear
         }
+        if let namedColor = parseNamedColor(raw) {
+            return namedColor
+        }
         if let rgba = parseRGBFunction(raw) {
             return rgba
         }
@@ -46,6 +49,17 @@ enum GlowColorParser {
             return hex
         }
         return .clear
+    }
+
+    private static func parseNamedColor(_ string: String) -> GlowColor? {
+        switch string.lowercased() {
+        case "black":
+            return .black
+        case "white":
+            return .white
+        default:
+            return nil
+        }
     }
 
     private static func parseRGBFunction(_ string: String) -> GlowColor? {

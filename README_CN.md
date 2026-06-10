@@ -309,6 +309,10 @@ Button("Buy") {
 
 - `GlowPresets.appleIntelligence`
 - `GlowPresets.neonGreen`
+- `GlowPresets.rainbow`
+- `GlowPresets.alert`
+- `GlowPresets.vaporwave`
+- `GlowPresets.glimmer`
 
 它们既可以直接使用，也适合作为你自己效果配置时的参考。
 

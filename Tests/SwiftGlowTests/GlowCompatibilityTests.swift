@@ -14,7 +14,25 @@ final class GlowCompatibilityTests: XCTestCase {
         XCTAssertEqual(GlowColor(css: "#0f0"), GlowColor(red255: 0, green255: 255, blue255: 0))
         XCTAssertEqual(GlowColor(css: "#00ff0080"), GlowColor(red255: 0, green255: 255, blue255: 0, alpha: Float(0x80) / 255))
         XCTAssertEqual(GlowColor(css: "rgba(255, 89, 213, 0.5)"), GlowColor(red255: 255, green255: 89, blue255: 213, alpha: 0.5))
+        XCTAssertEqual(GlowColor(css: "white"), .white)
+        XCTAssertEqual(GlowColor(css: "black"), .black)
         XCTAssertEqual(GlowColor(css: "transparent"), .clear)
+    }
+
+    func testNewBuiltInPresetsIncludeInteractiveStates() {
+        let presets = [
+            GlowPresets.rainbow,
+            GlowPresets.alert,
+            GlowPresets.vaporwave,
+            GlowPresets.glimmer
+        ]
+
+        for preset in presets {
+            XCTAssertEqual(preset.states.map(\.name), [.default, .hover, .press])
+            XCTAssertEqual(preset.states.first { $0.name == .hover }?.transition, 0.3)
+            XCTAssertEqual(preset.states.first { $0.name == .press }?.transition, 0.1)
+            XCTAssertFalse(preset.states.first { $0.name == .default }?.preset.glowLayers?.isEmpty ?? true)
+        }
     }
 
     func testLayerMergeIsIndexBased() {

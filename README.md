@@ -309,6 +309,10 @@ Built-in presets currently include:
 
 - `GlowPresets.appleIntelligence`
 - `GlowPresets.neonGreen`
+- `GlowPresets.rainbow`
+- `GlowPresets.alert`
+- `GlowPresets.vaporwave`
+- `GlowPresets.glimmer`
 
 These are useful as references for creating your own effects and for validating rendering behavior.
 

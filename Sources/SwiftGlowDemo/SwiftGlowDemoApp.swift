@@ -3,6 +3,8 @@ import SwiftGlow
 import SwiftUI
 #if canImport(AppKit)
 import AppKit
+#elseif canImport(UIKit)
+import UIKit
 #endif
 
 @main
@@ -39,7 +41,7 @@ struct DemoRootView: View {
         HStack(spacing: 0) {
             InspectorView(model: model)
                 .frame(width: 420)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(platformControlBackgroundColor)
 
             Divider()
 
@@ -66,7 +68,7 @@ final class DemoModel: ObservableObject {
     @Published var importedPressState: GlowState?
 
     init() {
-        selectedLayerID = layers.first?.id
+        loadPreset(GlowPresets.appleIntelligence, title: "Apple Intelligence")
     }
 
     var states: [GlowState] {
@@ -120,34 +122,45 @@ final class DemoModel: ObservableObject {
     }
 
     func loadAppleIntelligence() {
-        activeState = .default
-        cornerRadius = 50
-        outlineWidth = 0
-        animationSpeed = 1
-        borderSpeedMultiplier = 1
-        backgroundColor = "#000000"
-        borderColors = "#ffffff"
-        textColor = "#ffffff"
-        buttonTitle = "Apple Intelligence"
-        layers = .appleIntelligence
-        importedHoverState = nil
-        importedPressState = nil
-        selectedLayerID = layers.first?.id
+        loadPreset(GlowPresets.appleIntelligence, title: "Apple Intelligence")
     }
 
     func loadNeonGreen() {
+        loadPreset(GlowPresets.neonGreen, title: "Neon Green")
+    }
+
+    func loadRainbow() {
+        loadPreset(GlowPresets.rainbow, title: "Rainbow")
+    }
+
+    func loadAlert() {
+        loadPreset(GlowPresets.alert, title: "Alert")
+    }
+
+    func loadVaporwave() {
+        loadPreset(GlowPresets.vaporwave, title: "Vaporwave")
+    }
+
+    func loadGlimmer() {
+        loadPreset(GlowPresets.glimmer, title: "Glimmer")
+    }
+
+    private func loadPreset(_ preset: PresetConfig, title: String) {
         activeState = .default
-        cornerRadius = 50
-        outlineWidth = 4
-        animationSpeed = 3
-        borderSpeedMultiplier = 1
-        backgroundColor = "#1a1a1a"
-        borderColors = "#bfff3b, #39ff14, #fff35a"
-        textColor = "#39ff14"
-        buttonTitle = "Neon Green"
-        layers = .neonGreen
-        importedHoverState = nil
-        importedPressState = nil
+        let defaultConfig = preset.states.first { $0.name == .default }?.preset ?? GlowConfig()
+        cornerRadius = Double(defaultConfig.cornerRadius ?? 50)
+        outlineWidth = Double(defaultConfig.outlineWidth ?? 0)
+        animationSpeed = Double(defaultConfig.animationSpeed ?? 1)
+        borderSpeedMultiplier = Double(defaultConfig.borderSpeedMultiplier ?? 1)
+        backgroundColor = defaultConfig.backgroundColor.map(cssString) ?? "#000000"
+        borderColors = defaultConfig.borderColor.map(cssListString) ?? "#ffffff"
+        textColor = defaultConfig.textColor.map(cssString) ?? "#ffffff"
+        buttonTitle = title
+        layers = (defaultConfig.glowLayers ?? []).enumerated().map { index, layer in
+            EditableGlowLayer(glowLayer: layer, index: index)
+        }
+        importedHoverState = preset.states.first { $0.name == .hover }
+        importedPressState = preset.states.first { $0.name == .press }
         selectedLayerID = layers.first?.id
     }
 
@@ -269,6 +282,19 @@ struct EditableGlowLayer: Identifiable, Equatable {
 }
 
 extension EditableGlowLayer {
+    init(glowLayer layer: GlowLayerConfig, index: Int) {
+        self.init(
+            name: "Layer \(index + 1)",
+            placement: layer.glowPlacement ?? .behind,
+            colors: cssListString(layer.colors ?? [.white]),
+            glowSize: (layer.glowSize ?? [0]).map { formatNumber(Double($0)) }.joined(separator: ", "),
+            opacity: Double(layer.opacity ?? 0.5),
+            speedMultiplier: Double(layer.speedMultiplier ?? 1),
+            coverage: Double(layer.coverage ?? 1),
+            relativeOffset: Double(layer.relativeOffset ?? 0)
+        )
+    }
+
     init(reactNativeLayer layer: ReactNativeGlowLayer, index: Int) {
         self.init(
             name: "Layer \(index + 1)",
@@ -357,12 +383,30 @@ struct InspectorView: View {
 
     private var presetControls: some View {
         SectionBlock("Presets") {
-            HStack {
-                Button("Apple Intelligence") {
-                    model.loadAppleIntelligence()
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Button("Apple Intelligence") {
+                        model.loadAppleIntelligence()
+                    }
+                    Button("Neon Green") {
+                        model.loadNeonGreen()
+                    }
                 }
-                Button("Neon Green") {
-                    model.loadNeonGreen()
+                HStack {
+                    Button("Rainbow") {
+                        model.loadRainbow()
+                    }
+                    Button("Alert") {
+                        model.loadAlert()
+                    }
+                    Button("Vaporwave") {
+                        model.loadVaporwave()
+                    }
+                }
+                HStack {
+                    Button("Glimmer") {
+                        model.loadGlimmer()
+                    }
                 }
             }
             Button("Import RN JSON") {
@@ -427,7 +471,7 @@ struct InspectorView: View {
     }
 
     private func selectionBackground(for layer: EditableGlowLayer) -> Color {
-        layer.id == model.selectedLayerID ? Color.accentColor.opacity(0.16) : Color(nsColor: .textBackgroundColor)
+        layer.id == model.selectedLayerID ? Color.accentColor.opacity(0.16) : platformTextBackgroundColor
     }
 }
 
@@ -666,6 +710,36 @@ func formatNumber(_ value: Double) -> String {
     }
     let trimmed = (value * 1000).rounded() / 1000
     return String(trimmed)
+}
+
+func cssListString(_ colors: [GlowColor]) -> String {
+    colors.map(cssString).joined(separator: ", ")
+}
+
+func cssString(_ color: GlowColor) -> String {
+    let red = Int((Double(color.red) * 255).rounded())
+    let green = Int((Double(color.green) * 255).rounded())
+    let blue = Int((Double(color.blue) * 255).rounded())
+    if abs(color.alpha - 1) < 0.000_001 {
+        return String(format: "#%02X%02X%02X", red, green, blue)
+    }
+    return "rgba(\(red), \(green), \(blue), \(formatNumber(Double(color.alpha))))"
+}
+
+var platformControlBackgroundColor: Color {
+    #if canImport(AppKit)
+    Color(nsColor: .controlBackgroundColor)
+    #else
+    Color(.systemBackground)
+    #endif
+}
+
+var platformTextBackgroundColor: Color {
+    #if canImport(AppKit)
+    Color(nsColor: .textBackgroundColor)
+    #else
+    Color(.secondarySystemBackground)
+    #endif
 }
 
 struct ReactNativeGlowDocument: Decodable {
