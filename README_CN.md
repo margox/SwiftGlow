@@ -331,27 +331,6 @@ Demo 支持：
 - 在 `default`、`hover`、`press` 状态之间切换预览
 - 导入 `react-native-animated-glow` JSON 预设
 
-## 给 Agent 使用
-
-如果你想让 agent 帮你把 `SwiftGlow` 集成到别的 SwiftUI 项目中，可以安装配套 skill：
-
-```sh
-npx skills add margox/swiftglow-integration
-```
-
-之后可以直接让 agent 做这些事：
-
-- 把 `SwiftGlow` 加到我的 SwiftUI app，并做一个霓虹 CTA 按钮
-- 把这个 `react-native-animated-glow` 预设迁移成 SwiftGlow
-- 给这个设置页加一个 Apple Intelligence 风格的 glow 处理
-
-这个 skill 主要帮助 agent：
-
-- 添加 Swift Package 依赖
-- 在内建预设与自定义 `GlowState` 配置之间做选择
-- 正确迁移 React Native glow JSON 和数值语义
-- 发现并修正常见集成问题，比如 glow 被裁切、`inside` layer 被内容盖住
-
 ### 导入 React Native JSON
 
 demo 里包含 `Import RN JSON` 操作。可以粘贴与 React Native 包相同结构的 JSON：

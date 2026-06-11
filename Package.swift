@@ -28,7 +28,8 @@ let package = Package(
         ),
         .executableTarget(
             name: "SwiftGlowDemo",
-            dependencies: ["SwiftGlow"]
+            dependencies: ["SwiftGlow"],
+            exclude: ["Prototype.md"]
         ),
         .testTarget(
             name: "SwiftGlowTests",

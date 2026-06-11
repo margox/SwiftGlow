@@ -331,27 +331,6 @@ Demo features:
 - switch preview state between `default`, `hover`, and `press`
 - import JSON presets from `react-native-animated-glow`
 
-## Use With Agents
-
-If you want an agent to integrate `SwiftGlow` into another SwiftUI project for you, install the companion skill from the skills ecosystem:
-
-```sh
-npx skills add margox/swiftglow-integration
-```
-
-After that, ask your agent to do things like:
-
-- add `SwiftGlow` to my SwiftUI app and wire a neon CTA button
-- port this `react-native-animated-glow` preset to SwiftGlow
-- apply an Apple Intelligence-style glow treatment to this settings screen
-
-The skill is designed to help agents:
-
-- add the Swift Package dependency
-- choose between built-in presets and custom `GlowState` configs
-- port React Native glow JSON and numeric semantics correctly
-- validate common integration mistakes such as clipped glow or covered `inside` layers
-
 ### Importing React Native JSON
 
 The demo includes an `Import RN JSON` action. Paste a preset JSON document in the same shape as the React Native package:
