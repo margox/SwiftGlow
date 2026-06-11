@@ -1,5 +1,8 @@
 # SwiftGlow
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmargox%2FSwiftGlow%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/margox/SwiftGlow)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmargox%2FSwiftGlow%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/margox/SwiftGlow)
+
 `SwiftGlow` is a Swift Package for building animated glow borders and neon capsule effects with SwiftUI + Metal.
 
 It is designed to closely mirror the configuration model of [`react-native-animated-glow`](https://github.com/realimposter/react-native-animated-glow), so presets and tuning workflows can be shared across React Native and Apple-platform projects with minimal translation.

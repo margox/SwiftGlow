@@ -1,5 +1,8 @@
 # SwiftGlow
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmargox%2FSwiftGlow%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/margox/SwiftGlow)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmargox%2FSwiftGlow%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/margox/SwiftGlow)
+
 `SwiftGlow` 是一个 Swift Package，用于在 SwiftUI + Metal 中构建动态发光边框和霓虹胶囊效果。
 
 它尽量对齐 [`react-native-animated-glow`](https://github.com/realimposter/react-native-animated-glow) 的配置模型，这样 React Native 与 Apple 平台项目之间可以更直接地共享预设和调参方式。

@@ -1,0 +1,20 @@
+version: 1
+builder:
+  configs:
+    - platform: ios
+      scheme: SwiftGlow
+      documentation_targets: [SwiftGlow]
+    - platform: macos-spm
+      documentation_targets: [SwiftGlow]
+    - platform: macos-xcodebuild
+      scheme: SwiftGlow
+      documentation_targets: [SwiftGlow]
+    - platform: tvos
+      scheme: SwiftGlow
+      documentation_targets: [SwiftGlow]
+    - platform: visionos
+      scheme: SwiftGlow
+      documentation_targets: [SwiftGlow]
+    - platform: watchos
+      scheme: SwiftGlow
+      documentation_targets: [SwiftGlow]
