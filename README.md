@@ -175,7 +175,7 @@ Parameters:
 | `preset` | `GlowConfig` | Base configuration applied after the `.default` state preset. Useful for shared defaults. |
 | `states` | `[GlowState]` | State variants. In practice you usually want at least a `.default` state, and optionally `.hover` / `.press`. |
 | `viewOverride` | `GlowConfig` | Per-view override applied after `preset` and before the selected state. |
-| `status` | `GlowStatus` | State selection. Use `.default`, `.hover`, or `.press` for explicit selection, or `.auto` to switch between `.default` and `.press` automatically. |
+| `status` | `GlowStatus` | State selection. Use `.default`, `.hover`, or `.press` for explicit selection, or `.auto` to switch among `.default`, `.hover`, and `.press` automatically. |
 | `isVisible` | `Bool` | Turns Metal rendering on or off for the glow view. |
 
 For interactive controls such as buttons:
@@ -191,7 +191,7 @@ Button("Buy") {
 )
 ```
 
-`status: .auto` uses a press gesture to resolve `.default` while idle and `.press` while pressed. It does not use `.hover`.
+`status: .auto` resolves `.default` while idle, `.hover` while the pointer is hovering, and `.press` while pressed. If both hover and press are active, `.press` wins.
 
 There is still a deprecated `activeState:` overload for compatibility, but `status:` is the preferred public API now.
 

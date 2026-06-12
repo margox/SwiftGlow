@@ -175,7 +175,7 @@ func animatedGlow(
 | `preset` | `GlowConfig` | 在 `.default` 状态之后应用的基础配置，适合放共享默认值。 |
 | `states` | `[GlowState]` | 状态变体集合。实际使用时通常至少应提供一个 `.default` 状态，必要时再补 `.hover` / `.press`。 |
 | `viewOverride` | `GlowConfig` | 单个视图级别的覆盖配置，应用顺序在 `preset` 之后、选中状态之前。 |
-| `status` | `GlowStatus` | 状态选择。可直接用 `.default`、`.hover`、`.press` 显式指定，也可以用 `.auto` 在 `.default` 和 `.press` 之间自动切换。 |
+| `status` | `GlowStatus` | 状态选择。可直接用 `.default`、`.hover`、`.press` 显式指定，也可以用 `.auto` 在 `.default`、`.hover`、`.press` 之间自动切换。 |
 | `isVisible` | `Bool` | 控制 glow 的 Metal 渲染是否启用。 |
 
 按钮这类可交互控件可以这样写：
@@ -191,7 +191,7 @@ Button("Buy") {
 )
 ```
 
-`status: .auto` 会在空闲时解析为 `.default`，按下时解析为 `.press`。它不会自动使用 `.hover`。
+`status: .auto` 会在空闲时解析为 `.default`，悬停时解析为 `.hover`，按下时解析为 `.press`。如果悬停和按下同时存在，则优先使用 `.press`。
 
 为了兼容旧用法，`activeState:` 这一套入口还保留着，但公开 API 现在优先推荐 `status:`。
 

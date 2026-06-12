@@ -8,6 +8,7 @@ public struct AnimatedGlow<Content: View>: View {
     private let isVisible: Bool
     private let content: Content
     @GestureState private var isPressed = false
+    @State private var isHovered = false
 
     @available(*, deprecated, message: "Use init(preset:states:viewOverride:status:isVisible:content:) with GlowStatus.default, .hover, .press, or .auto.")
     public init(
@@ -64,7 +65,7 @@ public struct AnimatedGlow<Content: View>: View {
     }
 
     public var body: some View {
-        let activeState = status.activeState(isPressed: isPressed)
+        let activeState = status.activeState(isPressed: isPressed, isHovered: isHovered)
         let resolved = GlowCompatibility.resolvedConfig(
             preset: preset,
             states: states,
@@ -73,6 +74,10 @@ public struct AnimatedGlow<Content: View>: View {
         )
 
         let glowContent = content
+            .onHover { hovering in
+                guard status == .auto else { return }
+                isHovered = hovering
+            }
             .background {
                 GeometryReader { proxy in
                     MetalGlowView(

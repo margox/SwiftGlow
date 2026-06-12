@@ -31,10 +31,16 @@ public enum GlowStatus: Equatable, Sendable {
     public static var hover: GlowStatus { .manual(.hover) }
     public static var press: GlowStatus { .manual(.press) }
 
-    func activeState(isPressed: Bool) -> GlowEvent {
+    func activeState(isPressed: Bool, isHovered: Bool) -> GlowEvent {
         switch self {
         case .auto:
-            return isPressed ? .press : .default
+            if isPressed {
+                return .press
+            }
+            if isHovered {
+                return .hover
+            }
+            return .default
         case let .manual(event):
             return event
         }

@@ -98,12 +98,14 @@ final class GlowCompatibilityTests: XCTestCase {
         XCTAssertEqual(final.glowLayers, [])
     }
 
-    func testAutoStatusMapsPressGestureToPressState() {
-        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: false), .default)
-        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: true), .press)
-        XCTAssertEqual(GlowStatus.default.activeState(isPressed: true), .default)
-        XCTAssertEqual(GlowStatus.hover.activeState(isPressed: true), .hover)
-        XCTAssertEqual(GlowStatus.press.activeState(isPressed: false), .press)
-        XCTAssertEqual(GlowStatus.manual(.hover).activeState(isPressed: true), .hover)
+    func testAutoStatusMapsHoverAndPressGesturesToInteractiveStates() {
+        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: false, isHovered: false), .default)
+        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: false, isHovered: true), .hover)
+        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: true, isHovered: false), .press)
+        XCTAssertEqual(GlowStatus.auto.activeState(isPressed: true, isHovered: true), .press)
+        XCTAssertEqual(GlowStatus.default.activeState(isPressed: true, isHovered: true), .default)
+        XCTAssertEqual(GlowStatus.hover.activeState(isPressed: true, isHovered: false), .hover)
+        XCTAssertEqual(GlowStatus.press.activeState(isPressed: false, isHovered: true), .press)
+        XCTAssertEqual(GlowStatus.manual(.hover).activeState(isPressed: true, isHovered: false), .hover)
     }
 }

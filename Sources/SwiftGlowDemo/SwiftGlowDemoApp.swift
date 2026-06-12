@@ -1342,7 +1342,7 @@ struct PreviewStage: View {
                 .padding(.vertical, 22)
                 .animatedGlow(
                     states: model.states,
-                    status: .manual(model.activeState)
+                    status: .auto
                 )
         }
         .clipShape(RoundedRectangle(cornerRadius: 28))
